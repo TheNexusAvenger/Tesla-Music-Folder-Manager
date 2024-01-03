@@ -1,5 +1,5 @@
 # Project-specific
-output/
+configuration.json
 
 # PyCharm
 .idea/

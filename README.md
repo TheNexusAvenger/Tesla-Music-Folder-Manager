@@ -34,15 +34,46 @@ pip install requirements.txt
 ```
 
 ### Running
-Running the script can be done with the following:
-```
-python TeslaFormatWriter.py sourcedirectory destinationdirectory
+A configuration file named `configuration.json` is required. It
+can contain:
+- `sourceDirectory` (required): Directory to copy from.
+- `targetDirectory` (required): Directory to copy to.
+- `extensionsWhitelist` (optional): Optional list of file extensions to allow. By default, any file is allowed.
+- `fileWhitelist` (optional): Optional list of allowed file paths. Regular expressions are supported.
+- `fileBlacklist` (optional): Optional list of not allowed file paths. Regular expressions are supported.
+
+Below is an example configuration to copy from `C:\Users\User\Music`
+to `D:` for only `mp3` and `m4a` files.
+
+```json
+{
+  "sourceDirectory": "C:/Users/User/Music",
+  "targetDirectory": "D:",
+  "extensionsWhitelist": ["mp3", "m4a"]
+}
 ```
 
-For example, if the music is stored in `C:\Users\User\Music`
-and the target is the drive `D:`, the following can be run:
+Below is an example configuration for only the directories
+`Artist1` and `Artist2`, excluding `Artist1/Album1`.
+
+```json
+{
+  "sourceDirectory": "C:/Users/User/Music",
+  "targetDirectory": "D:",
+  "extensionsWhitelist": ["mp3", "m4a"],
+  "fileWhitelist": [
+    "Artist1",
+    "Artist2"
+  ],
+  "fileBlacklist": [
+    "Artist1/Album1"
+  ]
+}
 ```
-python TeslaFormatWriter.py C:\Users\User\Music D:
+
+Running the script can be done with the following:
+```
+python TeslaFormatWriter.py
 ```
 
 ## Method
@@ -70,7 +101,7 @@ Consider the following tracks:
 
 For each file, the following will be added to the front:
 `YearIncrementer_AlbumName_TrackId`
-* YearIncrementer - Incrementer for years, starting at 1 for the lastest album and increasing by 1 for each year from the newest album.
+* YearIncrementer - Incrementer for years, starting at 1 for the latest album and increasing by 1 for each year from the newest album.
 * AlbumName - The album name, which is used if the years are the same.
 * TrackId - The track id of the album, which is used if the album names are the same.
 

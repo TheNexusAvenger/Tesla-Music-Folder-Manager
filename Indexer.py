@@ -10,12 +10,10 @@ import re
 import sanitize_filename
 from tinytag.tinytag import TinyTag, TinyTagException
 from typing import Dict
+from Configuration import Configuration
 
 
 class Track:
-    """
-    Creates a track.
-    """
     def __init__(self, album: str, track: str, year: int, fileLocation: str):
         """Creates a track.
 
@@ -67,13 +65,13 @@ class Artist:
 
 
 class Indexer:
-    """
-
-    """
-    def __init__(self):
+    def __init__(self, configuration: Configuration):
         """Creates an indexer.
+
+        :param configuration: Configuration for the filter.
         """
 
+        self.configuration = configuration
         self.artists = {}
 
     def indexFile(self, fileLocation: str) -> None:
@@ -81,6 +79,10 @@ class Indexer:
 
         :param fileLocation: File to index.
         """
+
+        # Return if the filter does not pass.
+        if not self.configuration.fileAllowed(fileLocation):
+            return
 
         # Load the metadata tags and return if some audio tags are missing.
         try:
@@ -169,7 +171,6 @@ class Indexer:
                 # Add the file.
                 self.indexFile(path)
 
-
     def getArtists(self) -> Dict[str, Artist]:
         """Returns the indexed artists.
 
@@ -178,13 +179,13 @@ class Indexer:
         return self.artists
 
 
-def indexDirectory(directory: str) -> Dict[str, Artist]:
+def indexDirectory(configuration: Configuration) -> Dict[str, Artist]:
     """Returns a table of artists and tracks.
 
-    :param directory: Directory to index.
+    :param configuration: Configuration for the paths and filter.
     :return: Artists with tracks that were indexed.
     """
 
-    indexer = Indexer()
-    indexer.indexDirectory(directory)
+    indexer = Indexer(configuration)
+    indexer.indexDirectory(configuration.sourceDirectory)
     return indexer.getArtists()

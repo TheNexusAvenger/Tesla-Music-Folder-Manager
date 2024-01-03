@@ -11,6 +11,7 @@ import os
 import shutil
 import sys
 from typing import Dict
+from Configuration import Configuration
 
 
 class TeslaFormatWriter:
@@ -105,27 +106,49 @@ class TeslaFormatWriter:
         self.cleanDirectory(self.destinationLocation)
 
 
-if __name__ == '__main__':
-    # Return if the arguments don't exist.
-    if len(sys.argv) != 3:
-        print("Usage: TeslaFormatWriter.py sourceDirectroy destinationDirectory")
+def promptForExit() -> None:
+    """Prompts for the enter key to exit.
+    """
+
+    input("Press enter key to exit.")
+
+
+if __name__ == "__main__":
+    # Return if there is no configuration file.
+    configurationPath = os.path.realpath(os.path.join(__file__, "..", "configuration.json"))
+    if not os.path.exists(configurationPath):
+        print("configuration.json file not found.")
+        promptForExit()
         exit(-1)
 
-    # Add slashes to root drives.
-    if sys.argv[1][-1] == ":":
-        sys.argv[1] += "\\"
-    if sys.argv[2][-1] == ":":
-        sys.argv[2] += "\\"
+    # Read the configuration.
+    try:
+        configuration = Configuration(configurationPath)
+    except KeyError as e:
+        print(e)
+        promptForExit()
+        exit(-1)
+
+    # Return if the source or target does not exist.
+    if not os.path.exists(configuration.sourceDirectory):
+        print("Source directory \"" + configuration.sourceDirectory + "\" was not found.")
+        promptForExit()
+        exit(-1)
+    if not os.path.exists(configuration.targetDirectory):
+        print("Target directory \"" + configuration.targetDirectory + "\" was not found.")
+        promptForExit()
+        exit(-1)
 
     # Index the files.
     print("Indexing files.")
-    artists = Indexer.indexDirectory(sys.argv[1])
+    artists = Indexer.indexDirectory(configuration)
 
     # Write the directories.
     print("Writing files.")
-    writer = TeslaFormatWriter(sys.argv[2])
+    writer = TeslaFormatWriter(configuration.targetDirectory)
     writer.writeTracks(artists)
 
     # Clean the directories.
     print("Cleaning directories.")
     writer.cleanTracks()
+    promptForExit()
