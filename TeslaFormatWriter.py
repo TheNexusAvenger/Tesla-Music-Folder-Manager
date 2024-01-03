@@ -10,24 +10,25 @@ import ntpath
 import os
 import shutil
 import sys
+from typing import Dict
 
 
-
-"""
-Class that writes files.
-"""
 class TeslaFormatWriter:
-    """
-    Creates the writer.
-    """
-    def __init__(self,destinationLocation):
-        self.destinationLocation = destinationLocation.replace("/","\\")
+    def __init__(self, destinationLocation: str):
+        """Creates the writer.
+
+        :param destinationLocation: Path to write to.
+        """
+
+        self.destinationLocation = destinationLocation.replace("/", "\\")
         self.filesWritten = []
 
-    """
-    Writes files to the destination.
-    """
-    def writeTracks(self,artists):
+    def writeTracks(self, artists: Dict[str, Indexer.Artist]) -> None:
+        """Writes files to the destination.
+
+        :param artists: Artists with their files to write.
+        """
+
         # Add the artists and tracks.
         # The keys are sorted so that the artists are done in order by name.
         artistNames = list(artists.keys())
@@ -76,13 +77,15 @@ class TeslaFormatWriter:
                 else:
                     shutil.copyfile(track.fileLocation,trackDirectory)
 
-    """
-    Cleans a directory of unintended files.
-    """
-    def cleanDirectory(self,directory):
+    def cleanDirectory(self, directory: str) -> None:
+        """Cleans a directory of unintended files.
+
+        :param directory: Directory to clean.
+        """
+
         # Clean the files and directory.
         for file in os.listdir(directory):
-            path = os.path.join(directory,file)
+            path = os.path.join(directory, file)
             if os.path.isdir(path):
                 # Clean the subdirectory.
                 self.cleanDirectory(path)
@@ -95,17 +98,13 @@ class TeslaFormatWriter:
         if len(os.listdir(directory)) == 0:
             os.removedirs(directory)
 
-    """
-    Cleans the files that weren't written.
-    """
-    def cleanTracks(self):
+    def cleanTracks(self) -> None:
+        """Cleans the files that weren't written.
+        """
+
         self.cleanDirectory(self.destinationLocation)
 
 
-
-"""
-Runs the program.
-"""
 if __name__ == '__main__':
     # Return if the arguments don't exist.
     if len(sys.argv) != 3:

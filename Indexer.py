@@ -4,78 +4,84 @@ TheNexusAvenger
 Indexes a directory of music files.
 """
 
-from tinytag import TinyTag,TinyTagException
 import eyed3
 import os
 import re
 import sanitize_filename
+from tinytag.tinytag import TinyTag, TinyTagException
+from typing import Dict
 
 
-
-"""
-Cleans a string for use with file names.
-"""
-def cleanForFileName(string):
-    return sanitize_filename.sanitize(string)
-
-
-
-"""
-Data class for a track.
-"""
 class Track:
     """
     Creates a track.
     """
-    def __init__(self,album,track,year,fileLocation):
-        self.album = cleanForFileName(album).strip()
+    def __init__(self, album: str, track: str, year: int, fileLocation: str):
+        """Creates a track.
+
+        :param album: Name of the album the track is part of.
+        :param track: Name of the track.
+        :param year: Year of the track.
+        :param fileLocation: Location of the track.
+        """
+
+        self.album = sanitize_filename.sanitize(album).strip()
         self.track = track
         self.year = year
         self.fileLocation = fileLocation
 
-    """
-    Returns if an object is equal.
-    """
-    def __eq__(self,obj):
-        return isinstance(obj,Track) and obj.album == self.album and obj.track == self.track
+    def __eq__(self, obj: object) -> bool:
+        """Returns if an object is equal.
 
-"""
-Data class for an artist.
-"""
+        :param obj: Object to compare.
+        """
+        return isinstance(obj, Track) and obj.album == self.album and obj.track == self.track
+
+
 class Artist:
-    """
-    Creates an artist.
-    """
-    def __init__(self,artistName):
-        self.artistName = cleanForFileName(artistName).strip()
+    def __init__(self, artistName: str):
+        """Creates an artist.
+
+        :param artistName: Name of the artist.
+        """
+
+        self.artistName = sanitize_filename.sanitize(artistName).strip()
         self.tracks = []
 
-    """
-    Adds a song to the artist.
-    """
-    def addSong(self,album,track,year,fileLocation):
+    def addSong(self, album: str, track: str, year: int, fileLocation: str) -> None:
+        """Adds a track to the artist.
+
+        :param album: Name of the album the track is part of.
+        :param track: Name of the track.
+        :param year: Year of the track.
+        :param fileLocation: Location of the track.
+        """
+
         # Return if the song exists.
-        track = Track(album,track,year,fileLocation)
+        track = Track(album, track, year, fileLocation)
         if track in self.tracks:
             return
 
         # Add the track.
         self.tracks.append(track)
 
-"""
-Helper class for indexing files.
-"""
+
 class Indexer:
     """
-    Creates an indexer.
-    """
-    def __init__(self):
-        self.artists = {}
 
     """
-    Adds a file to the index.
-    """
-    def indexFile(self,fileLocation):
+    def __init__(self):
+        """Creates an indexer.
+        """
+
+        self.artists = {}
+
+    def indexFile(self, fileLocation: str) -> None:
+        """Adds a file to the index.
+
+        :param fileLocation: File to index.
+        """
+
         # Load the metadata tags and return if some audio tags are missing.
         try:
             metadata = TinyTag.get(fileLocation)
@@ -102,7 +108,7 @@ class Indexer:
             except ValueError:
                 # Find the first number. Some files include a timestamp rather than year.
                 # The first number is assumed to be the year.
-                foundNumbers = re.findall(r'\d+',year)
+                foundNumbers = re.findall(r'\d+', year)
                 if len(foundNumbers) > 0:
                     year = int(foundNumbers[0])
                 else:
@@ -116,13 +122,13 @@ class Indexer:
                 metadataTags = backupMetadata.tag
                 if metadataTags:
                     # Add the missing tags.
-                    if artist is None and hasattr(metadataTags,"artist"):
+                    if artist is None and hasattr(metadataTags, "artist"):
                         artist = metadataTags.artist
-                    if album is None and hasattr(metadataTags,"albumName"):
+                    if album is None and hasattr(metadataTags, "albumName"):
                         album = metadataTags.albumName
-                    if track is None and hasattr(metadataTags,"trackNumber"):
+                    if track is None and hasattr(metadataTags, "trackNumber"):
                         track = metadataTags.trackNumber
-                    if year is None and hasattr(metadataTags,"recording_date") and metadataTags.recording_date is not None:
+                    if year is None and hasattr(metadataTags, "recording_date") and metadataTags.recording_date is not None:
                         year = int(metadataTags.recording_date.year)
 
         # Add default tags and parse the tags.
@@ -143,17 +149,19 @@ class Indexer:
         artist = artist.strip()
         if artist.lower() not in self.artists.keys():
             self.artists[artist.lower()] = Artist(artist)
-        self.artists[artist.lower()].addSong(album,track,year,fileLocation)
+        self.artists[artist.lower()].addSong(album, track, year, fileLocation)
 
-    """
-    Indexes a directory.
-    """
-    def indexDirectory(self,directory):
-        directory = directory.replace("/","\\")
+    def indexDirectory(self, directory: str) -> None:
+        """Adds a file to the index.
+
+        :param directory: Directory to index.
+        """
+
+        directory = directory.replace("/", "\\")
 
         # Add the files and directories.
         for file in os.listdir(directory):
-            path = os.path.join(directory,file)
+            path = os.path.join(directory, file)
             if os.path.isdir(path):
                 # Recursively index the directory.
                 self.indexDirectory(path)
@@ -161,18 +169,22 @@ class Indexer:
                 # Add the file.
                 self.indexFile(path)
 
-    """
-    Returns the indexed artists.
-    """
-    def getArtists(self):
+
+    def getArtists(self) -> Dict[str, Artist]:
+        """Returns the indexed artists.
+
+        :return: Artists with tracks that were indexed.
+        """
         return self.artists
 
 
+def indexDirectory(directory: str) -> Dict[str, Artist]:
+    """Returns a table of artists and tracks.
 
-"""
-Returns a table of artists and tracks.
-"""
-def indexDirectory(directory):
+    :param directory: Directory to index.
+    :return: Artists with tracks that were indexed.
+    """
+
     indexer = Indexer()
     indexer.indexDirectory(directory)
     return indexer.getArtists()
