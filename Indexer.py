@@ -161,6 +161,10 @@ class Indexer:
 
         directory = directory.replace("/", "\\")
 
+        # Return if the directory should be ignored.
+        if self.configuration.fileBlacklisted(directory):
+            return
+
         # Add the files and directories.
         try:
             for file in os.listdir(directory):

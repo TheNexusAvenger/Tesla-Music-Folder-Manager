@@ -40,6 +40,18 @@ class Configuration:
                 for extension in configuration["extensionsWhitelist"]:
                     self.fileWhitelist.append("\\." + extension + "$")
 
+    def fileBlacklisted(self, path) -> bool:
+        """Returns if a path is blacklisted (matches at least 1 blacklist.
+
+        :param path: Path to check.
+        :return: Whether the path is allowed.
+        """
+
+        for blacklistEntry in self.fileBlacklist:
+            if re.findall(blacklistEntry.lower(), path.lower().replace("\\", "/")):
+                return True
+        return False
+
     def fileAllowed(self, path: str) -> bool:
         """Returns if a file is allowed. It must pass all blacklists and at least one whitelist.
 
@@ -48,9 +60,8 @@ class Configuration:
         """
 
         # Return false if a blacklist entry matches.
-        for blacklistEntry in self.fileBlacklist:
-            if re.findall(blacklistEntry.lower(), path.lower().replace("\\", "/")):
-                return False
+        if self.fileBlacklisted(path):
+            return False
 
         # Return true if there is no whitelist or at least 1 entry matches.
         if len(self.fileWhitelist) == 0:
