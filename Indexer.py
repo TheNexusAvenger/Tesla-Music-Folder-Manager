@@ -162,14 +162,18 @@ class Indexer:
         directory = directory.replace("/", "\\")
 
         # Add the files and directories.
-        for file in os.listdir(directory):
-            path = os.path.join(directory, file)
-            if os.path.isdir(path):
-                # Recursively index the directory.
-                self.indexDirectory(path)
-            elif os.path.isfile(path):
-                # Add the file.
-                self.indexFile(path)
+        try:
+            for file in os.listdir(directory):
+                path = os.path.join(directory, file)
+                if os.path.isdir(path):
+                    # Recursively index the directory.
+                    self.indexDirectory(path)
+                elif os.path.isfile(path):
+                    # Add the file.
+                    self.indexFile(path)
+        except PermissionError:
+            print("Could not access " + directory + ". Ignoring.")
+            pass
 
     def getArtists(self) -> Dict[str, Artist]:
         """Returns the indexed artists.
