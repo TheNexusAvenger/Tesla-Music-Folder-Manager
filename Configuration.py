@@ -20,13 +20,13 @@ class Configuration:
             configuration = json.loads(file.read())
 
             # Throw an error if there are missing values.
-            if "sourceDirectory" not in configuration.keys():
-                raise KeyError("sourceDirectory not in configuration.")
+            if "sourceDirectories" not in configuration.keys():
+                raise KeyError("sourceDirectories not in configuration.")
             if "targetDirectory" not in configuration.keys():
-                raise KeyError("sourceDirectory not in configuration.")
+                raise KeyError("targetDirectory not in configuration.")
 
             # Store the values.
-            self.sourceDirectory = configuration["sourceDirectory"]
+            self.sourceDirectories = configuration["sourceDirectories"]
             self.targetDirectory = configuration["targetDirectory"]
             if "fileWhitelist" in configuration.keys():
                 self.fileWhitelist = configuration["fileWhitelist"]

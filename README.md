@@ -36,7 +36,7 @@ pip install requirements.txt
 ### Running
 A configuration file named `configuration.json` is required. It
 can contain:
-- `sourceDirectory` (required): Directory to copy from.
+- `sourceDirectories` (required): List of directories to copy from.
 - `targetDirectory` (required): Directory to copy to.
 - `extensionsWhitelist` (optional): Optional list of file extensions to allow. By default, any file is allowed.
 - `fileWhitelist` (optional): Optional list of allowed file paths. Regular expressions are supported.
@@ -47,7 +47,7 @@ to `D:` for only `mp3` and `m4a` files.
 
 ```json
 {
-  "sourceDirectory": "C:/Users/User/Music",
+  "sourceDirectories": ["C:/Users/User/Music"],
   "targetDirectory": "D:",
   "extensionsWhitelist": ["mp3", "m4a"]
 }
@@ -58,7 +58,7 @@ Below is an example configuration for only the directories
 
 ```json
 {
-  "sourceDirectory": "C:/Users/User/Music",
+  "sourceDirectories": ["C:/Users/User/Music"],
   "targetDirectory": "D:",
   "extensionsWhitelist": ["mp3", "m4a"],
   "fileWhitelist": [

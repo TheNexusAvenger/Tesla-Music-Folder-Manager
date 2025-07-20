@@ -130,10 +130,11 @@ if __name__ == "__main__":
         exit(-1)
 
     # Return if the source or target does not exist.
-    if not os.path.exists(configuration.sourceDirectory):
-        print("Source directory \"" + configuration.sourceDirectory + "\" was not found.")
-        promptForExit()
-        exit(-1)
+    for sourceDirectory in configuration.sourceDirectories:
+        if not os.path.exists(sourceDirectory):
+            print("Source directory \"" + sourceDirectory + "\" was not found.")
+            promptForExit()
+            exit(-1)
     if not os.path.exists(configuration.targetDirectory):
         print("Target directory \"" + configuration.targetDirectory + "\" was not found.")
         promptForExit()

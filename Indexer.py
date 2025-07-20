@@ -195,5 +195,6 @@ def indexDirectory(configuration: Configuration) -> Dict[str, Artist]:
     """
 
     indexer = Indexer(configuration)
-    indexer.indexDirectory(configuration.sourceDirectory)
+    for sourceDirectory in configuration.sourceDirectories:
+        indexer.indexDirectory(sourceDirectory)
     return indexer.getArtists()
