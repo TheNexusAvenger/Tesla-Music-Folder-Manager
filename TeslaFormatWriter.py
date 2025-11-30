@@ -162,9 +162,12 @@ def promptForExit() -> None:
 
 if __name__ == "__main__":
     # Return if there is no configuration file.
-    configurationPath = os.path.realpath(os.path.join(__file__, "..", "configuration.json"))
+    configurationName = "configuration.json"
+    if len(sys.argv) > 1:
+        configurationName = sys.argv[1]
+    configurationPath = os.path.realpath(os.path.join(__file__, "..", configurationName))
     if not os.path.exists(configurationPath):
-        print("configuration.json file not found.")
+        print(configurationPath + " file not found.")
         promptForExit()
         exit(-1)
 
