@@ -14,16 +14,18 @@ from Configuration import Configuration
 
 
 class Track:
-    def __init__(self, album: str, track: str, year: int, fileLocation: str):
+    def __init__(self, album: str, title: str, track: str, year: int, fileLocation: str):
         """Creates a track.
 
         :param album: Name of the album the track is part of.
-        :param track: Name of the track.
+        :param title: Title of the track.
+        :param track: Index of the track.
         :param year: Year of the track.
         :param fileLocation: Location of the track.
         """
 
         self.album = sanitize_filename.sanitize(album).strip()
+        self.title = title
         self.track = track
         self.year = year
         self.fileLocation = fileLocation
@@ -46,17 +48,18 @@ class Artist:
         self.artistName = sanitize_filename.sanitize(artistName).strip()
         self.tracks = []
 
-    def addSong(self, album: str, track: str, year: int, fileLocation: str) -> None:
+    def addSong(self, album: str, title: str, track: str, year: int, fileLocation: str) -> None:
         """Adds a track to the artist.
 
         :param album: Name of the album the track is part of.
-        :param track: Name of the track.
+        :param title: Title of the track.
+        :param track: Index of the track.
         :param year: Year of the track.
         :param fileLocation: Location of the track.
         """
 
         # Return if the song exists.
-        track = Track(album, track, year, fileLocation)
+        track = Track(album, title, track, year, fileLocation)
         if track in self.tracks:
             return
 
@@ -95,8 +98,11 @@ class Indexer:
         # Read the metadata using TinyTag.
         artist = metadata.artist
         album = metadata.album
+        title = metadata.title
         track = metadata.track
         year = metadata.year
+        if title == "":
+            title = None
 
         # Reset the track and year if they aren't integers.
         if track is not None:
@@ -118,7 +124,7 @@ class Indexer:
 
         # Add missing attributes using eyed3.
         # This is because TinyTag sometimes doesn't fetch some attributes in testing.
-        if artist is None or album is None or track is None or year is None:
+        if artist is None or album is None or title is None or track is None or year is None:
             backupMetadata = eyed3.load(fileLocation)
             if backupMetadata is not None:
                 metadataTags = backupMetadata.tag
@@ -128,6 +134,8 @@ class Indexer:
                         artist = metadataTags.artist
                     if album is None and hasattr(metadataTags, "albumName"):
                         album = metadataTags.albumName
+                    if title is None and hasattr(metadataTags, "title"):
+                        title = metadataTags.title
                     if track is None and hasattr(metadataTags, "trackNumber"):
                         track = metadataTags.trackNumber
                     if year is None and hasattr(metadataTags, "recording_date") and metadataTags.recording_date is not None:
@@ -140,6 +148,9 @@ class Indexer:
         if album is None:
             print("\t" + fileLocation + " doesn't have a detected album name.")
             album = "Unknown"
+        if title is None:
+            print("\t" + fileLocation + " doesn't have a detected track name.")
+            title = "Unknown"
         if track is None:
             print("\t" + fileLocation + " doesn't have a detected track number.")
             track = 1
@@ -151,7 +162,7 @@ class Indexer:
         artist = artist.strip()
         if artist.lower() not in self.artists.keys():
             self.artists[artist.lower()] = Artist(artist)
-        self.artists[artist.lower()].addSong(album, track, year, fileLocation)
+        self.artists[artist.lower()].addSong(album, title, track, year, fileLocation)
 
     def indexDirectory(self, directory: str) -> None:
         """Adds a file to the index.

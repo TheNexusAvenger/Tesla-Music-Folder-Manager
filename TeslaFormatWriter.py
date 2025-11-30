@@ -10,6 +10,9 @@ import ntpath
 import os
 import shutil
 import sys
+from mutagen.asf import ASF, ASFHeaderError
+from mutagen.id3 import ID3, TIT2
+from mutagen.mp4 import MP4, MP4StreamInfoError
 from typing import Dict
 from Configuration import Configuration
 
@@ -60,23 +63,67 @@ class TeslaFormatWriter:
             identifierFormat = "{:0" + str(math.floor(math.log10(newestYear - oldestYear + 1) + 1)) + "d}_{:s}_{:0" + str(math.floor(math.log10(highestTrack) + 1)) + "d}"
 
             # Copy the tracks.
+            trackFilePaths = []
+            trackFilesToTrack = {}
             for track in artist.tracks:
                 # Determine the identifier and location.
-                identifier = identifierFormat.format(newestYear - track.year + 1,track.album,track.track)
-                trackDirectory = os.path.join(artistDirectory,identifier + "_" + ntpath.basename(track.fileLocation))
-                self.filesWritten.append(trackDirectory)
+                identifier = identifierFormat.format(newestYear - track.year + 1, track.album, track.track)
+                trackPath = os.path.join(artistDirectory, identifier + "_" + ntpath.basename(track.fileLocation))
+                self.filesWritten.append(trackPath)
+                trackFilePaths.append(trackPath)
+                trackFilesToTrack[trackPath] = track
 
                 # Copy the file.
-                if os.path.isfile(trackDirectory):
+                if os.path.isfile(trackPath):
                     sourceModifiedTime = os.path.getmtime(track.fileLocation)
-                    targetModifiedTime = os.path.getmtime(trackDirectory)
+                    targetModifiedTime = os.path.getmtime(trackPath)
                     sourceFileSize = os.path.getsize(track.fileLocation)
-                    targetFileSize = os.path.getsize(trackDirectory)
+                    targetFileSize = os.path.getsize(trackPath)
 
                     if sourceModifiedTime > targetModifiedTime or sourceFileSize != targetFileSize:
-                        shutil.copyfile(track.fileLocation,trackDirectory)
+                        shutil.copyfile(track.fileLocation, trackPath)
                 else:
-                    shutil.copyfile(track.fileLocation,trackDirectory)
+                    shutil.copyfile(track.fileLocation, trackPath)
+
+            # Set the track names if index prefixes are enabled (mainly Lucid Air/Gravity).
+            if configuration.addIndexPrefix:
+                trackIndexFormat = "{:0" + str(math.floor(math.log10(len(trackFilePaths))) + 1) + "d} {:s}"
+                trackFilePaths.sort()
+                currentFileIndex = 0
+                for trackPath in trackFilePaths:
+                    currentFileIndex += 1
+
+                    # Set the title.
+                    indexedTitle = trackIndexFormat.format(currentFileIndex, trackFilesToTrack[trackPath].title)
+
+                    try:
+                        # Set the tag for WMA.
+                        wmaTags = ASF(trackPath)
+                        wmaTags["Title"] = [indexedTitle]
+                        wmaTags.save()
+                    except ASFHeaderError:
+                        try:
+                            # Set the tag for M4A.
+                            m4aTags = MP4(trackPath)
+                            m4aTags["\xa9nam"] = indexedTitle
+                            m4aTags.save()
+                        except MP4StreamInfoError:
+                            # Set the tag for MP3.
+                            mp3Tags = ID3(trackPath)
+                            mp3Tags["TIT2"] = TIT2(encoding=3, text=indexedTitle)
+                            mp3Tags.save(trackPath)
+
+                    """
+                    metadata = eyed3.load(trackPath)
+                    if metadata is not None:
+                        if metadata.tag is None:
+                            metadata.initTag()
+                        metadata.tag.title = trackIndexFormat.format(currentFileIndex, trackFilesToTrack[trackPath].title)
+                        metadata.tag.save()
+                    else:
+                        print("Unable to read metadata to add index prefix: " + trackPath)
+                    """
+
 
     def cleanDirectory(self, directory: str) -> None:
         """Cleans a directory of unintended files.

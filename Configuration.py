@@ -39,6 +39,9 @@ class Configuration:
             if "extensionsWhitelist" in configuration.keys():
                 for extension in configuration["extensionsWhitelist"]:
                     self.fileWhitelist.append("\\." + extension + "$")
+            self.addIndexPrefix = False
+            if "addIndexPrefix" in configuration.keys():
+                self.addIndexPrefix = configuration["addIndexPrefix"]
 
     def fileBlacklisted(self, path) -> bool:
         """Returns if a path is blacklisted (matches at least 1 blacklist.

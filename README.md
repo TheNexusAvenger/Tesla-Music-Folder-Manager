@@ -41,6 +41,7 @@ can contain:
 - `extensionsWhitelist` (optional): Optional list of file extensions to allow. By default, any file is allowed.
 - `fileWhitelist` (optional): Optional list of allowed file paths. Regular expressions are supported.
 - `fileBlacklist` (optional): Optional list of not allowed file paths. Regular expressions are supported.
+- `addIndexPrefix` (optional): If `true`, an index will be added to the song name. *This is intended for the Lucid Air/Gravity, which ignore file names.*
 
 Below is an example configuration to copy from `C:\Users\User\Music`
 to `D:` for only `mp3` and `m4a` files.
@@ -54,7 +55,8 @@ to `D:` for only `mp3` and `m4a` files.
 ```
 
 Below is an example configuration for only the directories
-`Artist1` and `Artist2`, excluding `Artist1/Album1`.
+`Artist1` and `Artist2`, excluding `Artist1/Album1`, and with
+index prefixes.
 
 ```json
 {
@@ -67,7 +69,8 @@ Below is an example configuration for only the directories
   ],
   "fileBlacklist": [
     "Artist1/Album1"
-  ]
+  ],
+  "addIndexPrefix": true
 }
 ```
 
@@ -122,9 +125,14 @@ would be created in the destination directory:
     * 1_SomeSingle_1SomeSingle
 
 After the files are written, files that are in the destination directory
-that weren't written will be cleaned up. This is intended for music librar
+that weren't written will be cleaned up. This is intended for music library
 changes, such as removing songs or replacing singles when they get re-released
 as albums.
+
+#### Limitation - Lucid
+Lucid's USB music player ignores file names and sorts alphabetically
+by track name. `addIndexPrefix` was added as a workaround to add
+an index to the track name to ensure ordering.
 
 #### Limitation - Year Incrementer
 The year incrementer is used because the years need to increment

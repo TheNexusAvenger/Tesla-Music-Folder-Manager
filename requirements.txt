@@ -1,3 +1,4 @@
 tinytag
 eyed3
+mutagen
 sanitize_filename
