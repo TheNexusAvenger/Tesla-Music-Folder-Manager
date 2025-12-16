@@ -11,7 +11,7 @@ import os
 import shutil
 import sys
 from mutagen.asf import ASF, ASFHeaderError
-from mutagen.id3 import ID3, TIT2
+from mutagen.id3 import ID3, TIT2, TRCK
 from mutagen.mp4 import MP4, MP4StreamInfoError
 from typing import Dict
 from Configuration import Configuration
@@ -100,29 +100,21 @@ class TeslaFormatWriter:
                         # Set the tag for WMA.
                         wmaTags = ASF(trackPath)
                         wmaTags["Title"] = [indexedTitle]
+                        wmaTags["WM/TrackNumber"] = [str(currentFileIndex)]
                         wmaTags.save()
                     except ASFHeaderError:
                         try:
                             # Set the tag for M4A.
                             m4aTags = MP4(trackPath)
                             m4aTags["\xa9nam"] = indexedTitle
+                            m4aTags["trkn"] = [[currentFileIndex, len(trackFilePaths)]]
                             m4aTags.save()
                         except MP4StreamInfoError:
                             # Set the tag for MP3.
                             mp3Tags = ID3(trackPath)
                             mp3Tags["TIT2"] = TIT2(encoding=3, text=indexedTitle)
+                            mp3Tags["TRCK"] = TRCK(encoding=3, text=str(currentFileIndex) + "/" + str(len(trackFilePaths)))
                             mp3Tags.save(trackPath)
-
-                    """
-                    metadata = eyed3.load(trackPath)
-                    if metadata is not None:
-                        if metadata.tag is None:
-                            metadata.initTag()
-                        metadata.tag.title = trackIndexFormat.format(currentFileIndex, trackFilesToTrack[trackPath].title)
-                        metadata.tag.save()
-                    else:
-                        print("Unable to read metadata to add index prefix: " + trackPath)
-                    """
 
 
     def cleanDirectory(self, directory: str) -> None:
