@@ -11,6 +11,7 @@ import os
 import shutil
 import sys
 from mutagen.asf import ASF, ASFHeaderError
+from mutagen.flac import FLAC, FLACNoHeaderError
 from mutagen.id3 import ID3, TIT2, TRCK
 from mutagen.mp4 import MP4, MP4StreamInfoError
 from typing import Dict
@@ -110,11 +111,18 @@ class TeslaFormatWriter:
                             m4aTags["trkn"] = [[currentFileIndex, len(trackFilePaths)]]
                             m4aTags.save()
                         except MP4StreamInfoError:
-                            # Set the tag for MP3.
-                            mp3Tags = ID3(trackPath)
-                            mp3Tags["TIT2"] = TIT2(encoding=3, text=indexedTitle)
-                            mp3Tags["TRCK"] = TRCK(encoding=3, text=str(currentFileIndex) + "/" + str(len(trackFilePaths)))
-                            mp3Tags.save(trackPath)
+                            try:
+                                # Set the tag for FLAC.
+                                flacTags = FLAC(trackPath)
+                                flacTags["title"] = indexedTitle
+                                flacTags["tracknumber"] = indexedTitle
+                                flacTags.save()
+                            except FLACNoHeaderError:
+                                # Set the tag for MP3.
+                                mp3Tags = ID3(trackPath)
+                                mp3Tags["TIT2"] = TIT2(encoding=3, text=indexedTitle)
+                                mp3Tags["TRCK"] = TRCK(encoding=3, text=str(currentFileIndex) + "/" + str(len(trackFilePaths)))
+                                mp3Tags.save(trackPath)
 
 
     def cleanDirectory(self, directory: str) -> None:
