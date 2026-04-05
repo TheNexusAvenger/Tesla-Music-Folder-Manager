@@ -4,6 +4,7 @@ TheNexusAvenger
 Configuration for the Tesla file writer.
 """
 
+import os
 import json
 import re
 
@@ -51,7 +52,7 @@ class Configuration:
         """
 
         for blacklistEntry in self.fileBlacklist:
-            if re.findall(blacklistEntry.lower(), path.lower().replace("\\", "/")):
+            if re.findall(blacklistEntry.lower(), os.path.normpath(path.lower())):
                 return True
         return False
 
@@ -70,7 +71,7 @@ class Configuration:
         if len(self.fileWhitelist) == 0:
             return True
         for whitelistEntry in self.fileWhitelist:
-            if re.findall(whitelistEntry.lower(), path.lower().replace("\\", "/")):
+            if re.findall(whitelistEntry.lower(), os.path.normpath(path.lower())):
                 return True
 
         # Return false (no whitelist entry matches).

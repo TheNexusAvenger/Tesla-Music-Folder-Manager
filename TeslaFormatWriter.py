@@ -25,7 +25,7 @@ class TeslaFormatWriter:
         :param destinationLocation: Path to write to.
         """
 
-        self.destinationLocation = destinationLocation.replace("/", "\\")
+        self.destinationLocation = os.path.normpath(destinationLocation)
         self.filesWritten = []
 
     def writeTracks(self, artists: Dict[str, Indexer.Artist]) -> None:

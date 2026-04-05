@@ -170,7 +170,7 @@ class Indexer:
         :param directory: Directory to index.
         """
 
-        directory = directory.replace("/", "\\")
+        directory = os.path.normpath(directory)
 
         # Return if the directory should be ignored.
         if self.configuration.fileBlacklisted(directory):
